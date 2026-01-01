@@ -1,83 +1,395 @@
-import requests
-email = input("	Put Email : : ")
-url = "https://api16-normal-c-alisg.tiktokv.com/passport/email/send_code/"
+import asyncio, aiohttp, os, urllib.parse, re, random, binascii, uuid, time, hashlib, string, json, base64
+from MedoSigner import Argus, Gorgon, Ladon, md5
 
-params = {
-    'passport-sdk-version': "19",
-    'iid': "7372613882915211014",
-    'device_id': "7372613015445308933",
-    'ac': "wifi",
-    'channel': "googleplay",
-    'aid': "1233",
-    'app_name': "musical_ly",
-    'version_code': "310503",
-    'version_name': "31.5.3",
-    'device_platform': "android",
-    'os': "android",
-    'ab_version': "31.5.3",
-    'ssmix': "a",
-    'device_type': "ART-L29N",
-    'device_brand': "HUAWEI",
-    'language': "ar",
-    'os_api': "29",
-    'os_version': "10",
-    'openudid': "47b07f1a42f3d962",
-    'manifest_version_code': "2023105030",
-    'resolution': "720*1491",
-    'dpi': "320",
-    'update_version_code': "2023105030",
-    '_rticket': "1716570582691",
-    'is_pad': "0",
-    'app_type': "normal",
-    'sys_region': "YE",
-    'mcc_mnc': "42102",
-    'timezone_name': "Asia/Aden",
-    'carrier_region_v2': "421",
-    'app_language': "ar",
-    'carrier_region': "YE",
-    'ac2': "wifi",
-    'uoo': "1",
-    'op_region': "YE",
-    'timezone_offset': "10800",
-    'build_number': "31.5.3",
-    'host_abi': "arm64-v8a",
-    'locale': "ar",
-    'region': "YE",
-    'ts': "1716570584",
-    'cdid': "10f6e4d6-16f9-4a03-a021-4375a1c072c8",
-    'support_webview': "1",
-    'reg_store_region': "ye",
-    'cronet_version': "2fdb62f9_2023-09-06",
-    'ttnet_version': "4.2.152.11-tiktok",
-    'use_store_region_cookie': "1"
-}
+P  = '\x1b[1;97m'       # أبيض فاتح
+B  = '\x1b[1;94m'       # أزرق فاتح
+O  = '\x1b[1;96m'       # سماوي (أزرق مائل للتركوازي)
+Z  = "\033[1;30m"       # أسود غامق
+X  = '\033[1;33m'       # أصفر
+F  = '\033[2;32m'       # أخضر غامق
+Z  = '\033[1;31m'       # أحمر
+L  = "\033[1;95m"       # أرجواني
+C  = '\033[2;35m'       # وردي غامق
+A  = '\033[2;39m'       # أزرق رمادي
+P  = "\x1b[38;5;231m"   # أبيض ناصع (Putih)
+J  = "\x1b[38;5;208m"   # برتقالي (Jingga)
+J1 = '\x1b[38;5;202m'   # برتقالي غامق
+J2 = '\x1b[38;5;203m'   # وردي فاتح
+J21= '\x1b[38;5;204m'   # وردي متوسط
+J22= '\x1b[38;5;209m'   # وردي فاتح مشع
+F1 = '\x1b[38;5;76m'    # أخضر زمردي
+C1 = '\x1b[38;5;120m'   # أخضر فاتح
+P1 = '\x1b[38;5;150m'   # أخضر مائل للأزرق (فسفوري)
+P2 = '\x1b[38;5;190m'   # أخضر ليموني
+sd = random.choice([J1, J2, J21, J22, F1, C1, P1, P2])
 
-payload = f"rules_version=v2&account_sdk_source=app&multi_login=1&type=31&email={email}&mix_mode=1"
+print(f"{J} ▬▬{P}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬{C1}▬▬{J22}Ā₣ŔΐŦ{C1}▬▬{P}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬{J}▬▬")
+print(sd + f"""
+       █████╗  ███████╗ ██████╗  ██╗ ████████╗
+      ██╔══██╗ ██╔════╝ ██╔══██╗ ██║ ╚══██╔══╝
+      ███████║ █████╗   ██████╔╝ ██║    ██║   
+      ██╔══██║ ██╔══╝   ██╔══██╗ ██║    ██║   
+      ██║  ██║ ██║      ██║  ██║ ██║    ██║   
+{sd}      ╚═╝  ╚═╝ ╚═╝      ╚═╝  ╚═╝ ╚═╝    ╚═╝   
+        {X}¸.•´¯`•.¸¸ {J22} F-Trind-V2 {X}¸.•´¯`•.¸¸         
+                {F}TLE :   @oo22bb
+    """)
+print(f"""{J} ▬▬{P}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬{C1}▬▬{J22}Ā₣ŔΐŦ{C1}▬▬{P}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬{J}▬▬
+    {X}[{F}1{X}] {P1}Countries-Specific
+    {X}[{F}2{X}] {P1}Countries-All
+    {X}[{F}3{X}] {P1}Random
+    {X}[{F}4{X}] {P1}Following
+    {X}[{F}5{X}] {P1}INDIA-🇮🇳
+    {X}[{F}6{X}] {P1}JAPAN-🇯🇵
+    {X}[{F}7{X}] {P1}KOREA-🇰🇷 🇰🇵
+    {X}[{F}8{X}] {P1}CHINA-🇨🇳""")
 
-headers = {
-    'User-Agent': "com.zhiliaoapp.musically/2023105030 (Linux; U; Android 10; ar_YE; ART-L29N; Build/HUAWEIART-L29N; Cronet/TTNetVersion:2fdb62f9 2023-09-06 QuicVersion:bb24d47c 2023-07-19)",
-    'Content-Type': "application/x-www-form-urlencoded",
-    'sdk-version': "2",
-    'x-ss-req-ticket': "1716570582694",
-    'x-tt-passport-csrf-token': "24a8c5234188c87c654cf17f2ee2dc70",
-    'passport-sdk-version': "19",
-    'x-tt-dm-status': "login=0;ct=1;rt=6",
-    'x-tt-bypass-dp': "1",
-    'x-vc-bdturing-sdk-version': "2.3.3.i18n",
-    'x-ss-stub': "8CC81EE0FB32631749A8267BEB4F3249",
-    'x-tt-trace-id': "00-ab947041106650c879cc0a06053304d1-ab947041106650c8-01",
-    'x-argus': "43ezL+yAGAg/ntTuU/ujVA8I1E6tQEh2+Ay9fZ8xSJzIxShzJLdOIp1oZSMcTmTd79DKgYvYG3Y6EJHQw0hRl3ptm+MgzlmjKohIZsPGftz0AudftXdILG3SqIRh7R4+Kzs+vcYKR/dal+lnAhKgTRRfxYDDBVHNB7kpiQEOkH915AYJ1uF8qGO3uZTHfElq8kc94HsCZBDWv5ZZ6vOB3hPbgc/dLzjxLir837B5Jpe4OllaKgN3L5v3WC+2JJn/VTMk81UwfNSH8l7p7NnIbXJd6m59h9IFWgomPpqEpOhlu+ROhJuWmJ5FS3lZJrPBK0h3mlYhNJbKxRgIaeylVZkljvuFZ8fwPxvog2U6obOSEXQATIjZMhT+BoSTcvpdGn/P55O9J3IR/0hlDwzx3Sp3/xqsfp8l/QmArv4ha70TG1by0QDdvXAfBzs/JJZQ9qku/JAZnYfgXoPfrhQbdwjJf2Gmj8XphbcKIp/oEUzSOs5Fjc3pbRgfLVBPbTf/0yEVGlwv4VblaBxOsAaqJuRY",
-    'x-gorgon': "84040039000073c5d5fa441990245151415451f12ba24072b6e4",
-    'x-khronos': "1716570578",
-    'x-ladon': "DOCmYT1SFgBtXIky8cBH+g/ymcAe+237nMdEAu2IPa2oUq7O",
-}
+lis = input(f'    {X}[{F}×{X}] {Z}Choose : ')
 
+if lis == '1':
+    country = ['India', 'Vietnam', 'Korea', 'Japan', 'China', 'Indonesia']
+elif lis == '2':
+    country = 'All'
+elif lis == '3':
+    country = 'Random'
+elif lis == '4':
+    import aiohttp, asyncio, random, time, uuid, string, hashlib, base64, json, ms4, re, os
+    
+    ss = {}
+    
+    def rn(l=10):
+        return ''.join(random.choice(string.digits) for _ in range(l))
+    
+    def rh(l=32):
+        return ''.join(random.choice('0123456789abcdef') for _ in range(l))
+    
+    def ru():
+        return str(uuid.uuid4())
+    
+    def ra():
+        br = ["Infinix", "Samsung", "Xiaomi", "Huawei", "Realme", "Oppo", "Vivo", "Tecno"]
+        mo = ["X692", "A52", "M21", "Note9", "Y20", "C25", "F17", "P30"]
+        av = ["10", "11", "12", "13"]
+        bv = ["QP1A.190711.020", "RP1A.200720.011", "TP1A.220905.001", "SP1A.210812.016"]
+        return f"com.zhiliaoapp.musically.go/370402 (Linux; U; Android {random.choice(av)}; ar; {random.choice(br)} {random.choice(mo)}; Build/{random.choice(bv)}; tt-ok/3.12.13.27-ul)"
+    
+    def gx(ts):
+        b = hashlib.md5(str(ts).encode()).hexdigest()
+        return "8404" + b[:30]
+    
+    def ga(ts, di, ii):
+        r = f"{di}:{ii}:{ts}"
+        h = hashlib.sha256(r.encode()).digest()
+        return base64.b64encode(h).decode()
+    
+    def gp(pd):
+        e = json.dumps(pd, separators=(',', ':')).encode()
+        return base64.b64encode(e).decode()
+    
+    async def pu(dk, ui):
+        try:
+            m = ms4.InfoTik.TikTok_Info(dk)
+            ui_ = m["id"]
+            up = f'https://www.tiktok.com/@{dk}'
+            async with aiohttp.ClientSession() as s:
+                async with s.get(up, headers={'User-Agent': 'Mozilla/5.0'}) as r:
+                    rt = await r.text()
+            su = re.search(r'"secUid":"([^"]+)"', rt).group(1)
+            ii = rn(19)
+            di = rn(19)
+            cd = ru()
+            ou = rh(16)
+            sn = set()
+            au = []
+            pt = ""
+            mt = ""
+            tc = 0
+            while True:
+                ts = int(time.time())
+                ua = ra()
+                hd = {'User-Agent': ua, 'Accept-Encoding': "gzip", 'rpc-persist-pyxis-policy-v-tnc': "1", 'x-ss-dp': "1340", 'x-tt-req-timeout': "90000", 'sdk-version': "2", 'x-tt-token': rh(96), 'passport-sdk-version': "30990", 'x-tt-ultra-lite': "1", 'x-vc-bdturing-sdk-version': "2.3.2.i18n", 'x-tt-store-region': "iq", 'x-tt-store-region-src': "uid", 'x-ladon': rh(64), 'x-khronos': str(ts), 'x-argus': ga(ts, di, ii), 'x-gorgon': gx(ts), 'X-Tt-Params': gp({"iid": ii, "device_id": di, "cdid": cd, "ts": ts, "version": "37.4.2", "region": "IQ"}), 'Cookie': f"install_id={ii}; device_id={di}; odin_tt={rh(64)}; sessionid={rh(32)}"}
+                url = f"https://api16-normal-c-alisg.tiktokv.com/lite/v2/relation/following/list/?sss-network-channel={rn(13)}&user_id={ui_}&count=200&page_token={pt}&max_time={mt}&source_type=4&request_tag_from=h5&sec_user_id={su}&manifest_version_code=370402&_rticket={rn(13)}&app_language=ar&app_type=normal&iid={ii}&app_package=com.zhiliaoapp.musically.go&channel=googleplay&device_type=Infinix+X692&language=ar&host_abi=arm64-v8a&locale=ar&resolution=720*1464&openudid={ou}&update_version_code=370402&ac2=wifi&cdid={cd}&sys_region=EG&os_api=29&timezone_name=Asia%2FBaghdad&dpi=320&carrier_region=IQ&ac=wifi&device_id={di}&os_version=10&timezone_offset=10800&version_code=370402&app_name=musically_go&ab_version=37.4.2&version_name=37.4.2&device_brand=Infinix&op_region=IQ&ssmix=a&device_platform=android&build_number=37.4.2&region=EG&aid=1340&ts={ts}"
+                try:
+                    async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30)) as session:
+                        async with session.get(url, headers=hd) as resp:
+                            rs = await resp.json()
+                    us = [item['unique_id'] for item in rs.get('followings', [])]
+                    for u in us:
+                        if u not in sn:
+                            sn.add(u)
+                            au.append(u)
+                            tc += 1
+                    if not rs.get("has_more"):
+                        break
+                    pt = rs.get("next_page_token", "")
+                    mt = rs.get("min_time", "")
+                except:
+                    break
+                await asyncio.sleep(1)  # وقت انتظار 1 ثانية
+            with open(f"f_{ui}.txt", "a", encoding="utf-8") as f:
+                for u in au:
+                    f.write(u + "\n")
+        except:
+            pass
+    
+    async def main():
+        os.system('clear')
+        print(f"{J} ▬▬{P}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬{C1}▬▬{J22}Ā₣ŔΐŦ{C1}▬▬{P}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬{J}▬▬")
+        print(sd + f"""
+       █████╗  ███████╗ ██████╗  ██╗ ████████╗
+      ██╔══██╗ ██╔════╝ ██╔══██╗ ██║ ╚══██╔══╝
+      ███████║ █████╗   ██████╔╝ ██║    ██║   
+      ██╔══██║ ██╔══╝   ██╔══██╗ ██║    ██║   
+      ██║  ██║ ██║      ██║  ██║ ██║    ██║   
+{sd}      ╚═╝  ╚═╝ ╚═╝      ╚═╝  ╚═╝ ╚═╝    ╚═╝   
+        {X}¸.•´¯`•.¸¸ {J22} F-Trind-V2 {X}¸.•´¯`•.¸¸         
+                {F}TLE :   @oo22bb
+    """)
+        print(f"""{J} ▬▬{P}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬{C1}▬▬{J22}Ā₣ŔΐŦ{C1}▬▬{P}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬{J}▬▬""")
+        
+        user = input("User : ").strip()
+        if not user:
+            return
+        
+        of = "f_user.txt"
+        if os.path.exists(of):
+            os.remove(of)
+        
+        await pu(user, "user")
+        
+        if os.path.exists(of):
+            with open(of, "r", encoding="utf-8") as f:
+                users = f.read().strip().split("\n")
+            
+            os.system('clear')
+            print(f"{J} ▬▬{P}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬{C1}▬▬{J22}Ā₣ŔΐŦ{C1}▬▬{P}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬{J}▬▬")
+            print(sd + f"""
+       █████╗  ███████╗ ██████╗  ██╗ ████████╗
+      ██╔══██╗ ██╔════╝ ██╔══██╗ ██║ ╚══██╔══╝
+      ███████║ █████╗   ██████╔╝ ██║    ██║   
+      ██╔══██║ ██╔══╝   ██╔══██╗ ██║    ██║   
+      ██║  ██║ ██║      ██║  ██║ ██║    ██║   
+{sd}      ╚═╝  ╚═╝ ╚═╝      ╚═╝  ╚═╝ ╚═╝    ╚═╝   
+        {X}¸.•´¯`•.¸¸ {J22} F-Trind-V2 {X}¸.•´¯`•.¸¸         
+                {F}TLE :   @oo22bb
+    """)
+            print(f"""{J} ▬▬{P}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬{C1}▬▬{J22}Ā₣ŔΐŦ{C1}▬▬{P}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬{J}▬▬""")
+            print(f"{Z}Get {P}- {L}List {P}[ {P2}{len(users)}{P} ]")
+            
+            for u in users:
+                print(u)
+        else:
+            print("Username not found")
+    
+    asyncio.run(main())
 
-session = requests.Session()
+elif lis == '5':
+    country = 'India'
+elif lis == '6':
+    country = 'Japan'
+elif lis == '7':
+    country = 'Korea'
+elif lis == '8':
+    country = 'China'
 
-
-try:
-    response = session.post(url, params=params, data=payload, headers=headers)
-    print(response.text)
-except requests.exceptions.RequestException as e:
-    print("Error:", e)
+if lis in ['1', '2', '3', '5', '6', '7', '8']:
+    a = 0
+    users = set()
+    user_queue = asyncio.Queue()
+    lock = asyncio.Lock()
+    
+    def Vals():
+        return {
+            "manifest_version_code": "330802",
+            "_rticket": str(round(random.uniform(1.2, 1.6) * 100000000) * -1) + "4632",
+            "app_language": "ar",
+            "app_type": "normal",
+            "iid": str(random.randint(1, 10 ** 19)),
+            "channel": "googleplay",
+            "device_type": "RMX3511",
+            "language": "ar",
+            "host_abi": "arm64-v8a",
+            "locale": "ar",
+            "resolution": "1080*2236",
+            "openudid": str(binascii.hexlify(os.urandom(8)).decode()),
+            "update_version_code": "330802",
+            "ac2": "lte",
+            "cdid": str(uuid.uuid4()),
+            "sys_region": "IQ",
+            "os_api": "33",
+            "timezone_name": "Asia/Baghdad",
+            "dpi": "360",
+            "carrier_region": "IQ",
+            "ac": "4g",
+            "device_id": str(random.randint(1, 10 ** 19)),
+            "os_version": "13",
+            "timezone_offset": "10800",
+            "version_code": "330802",
+            "app_name": "musically_go",
+            "ab_version": "33.8.2",
+            "version_name": "33.8.2",
+            "device_brand": "realme",
+            "op_region": "IQ",
+            "ssmix": "a",
+            "device_platform": "android",
+            "build_number": "33.8.2",
+            "region": "IQ",
+            "aid": "1340",
+            "ts": str(round(random.uniform(1.2, 1.6) * 100000000) * -1)
+        }, {
+            'User-Agent': 'com.zhiliaoapp.musically/2023001020 (Linux; U; Android 13; ar; RMX3511; Build/TP1A.220624.014; Cronet/TTNetVersion:06d6a583 2023-04-17 QuicVersion:d298137e 2023-02-13)'
+        }
+    
+    def sign(params, payload: str = None, sec_device_id: str = "", cookie: str = None,
+             aid: int = 1233, license_id: int = 1611921764, sdk_version_str: str = "2.3.1.i18n",
+             sdk_version: int = 2, platform: int = 19, unix: int = None):
+        x_ss_stub = md5(payload.encode('utf-8')).hexdigest() if payload is not None else None
+        if not unix:
+            unix = int(time.time())
+        return Gorgon(params, unix, payload, cookie).get_value() | {
+            "x-ladon": Ladon.encrypt(unix, license_id, aid),
+            "x-argus": Argus.get_sign(params, x_ss_stub, unix, platform=platform, aid=aid,
+                                      license_id=license_id, sec_device_id=sec_device_id,
+                                      sdk_version=sdk_version_str, sdk_version_int=sdk_version)
+        }
+    
+    async def get_following(session, user_id):
+        global users, a
+        token = None
+        while True:
+            try:
+                p, h = Vals()
+                signed = sign(params=urllib.parse.urlencode(p), payload="", cookie="")
+                h.update({
+                    'x-ss-req-ticket': signed['x-ss-req-ticket'],
+                    'x-argus': signed["x-argus"],
+                    'x-gorgon': signed["x-gorgon"],
+                    'x-khronos': signed["x-khronos"],
+                    'x-ladon': signed["x-ladon"]
+                })
+                base_url = f'https://api16-normal-c-alisg.tiktokv.com/lite/v2/relation/following/list/?user_id={user_id}&count=50&source_type=1&request_tag_from=h5&{urllib.parse.urlencode(p)}'
+                if token:
+                    base_url += f"&page_token={urllib.parse.quote(token)}"
+                try:
+                    async with session.get(base_url, headers=h, timeout=aiohttp.ClientTimeout(total=30)) as response:
+                        data = await response.json()
+                except:
+                    break
+                
+                for user in data.get("followings", []):
+                    reg = user.get("region")
+                    fol = user.get("follower_count")
+                    username = user.get("unique_id")
+                    async with lock:
+                        if username:
+                            if int(fol) > 0 and username not in users:
+                                a += 1
+                                users.add(username)
+                                os.system('clear')
+                                print(f"{J} ▬▬{P}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬{C1}▬▬{J22}Ā₣ŔΐŦ{C1}▬▬{P}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬{J}▬▬")
+                                print(sd + f"""
+       █████╗  ███████╗ ██████╗  ██╗ ████████╗
+      ██╔══██╗ ██╔════╝ ██╔══██╗ ██║ ╚══██╔══╝
+      ███████║ █████╗   ██████╔╝ ██║    ██║   
+      ██╔══██║ ██╔══╝   ██╔══██╗ ██║    ██║   
+      ██║  ██║ ██║      ██║  ██║ ██║    ██║   
+{sd}      ╚═╝  ╚═╝ ╚═╝      ╚═╝  ╚═╝ ╚═╝    ╚═╝   
+        {X}¸.•´¯`•.¸¸ {J22} F-Trind-V2 {X}¸.•´¯`•.¸¸         
+                {F}TLE :   @oo22bb
+    """)
+                                print(f"""{J} ▬▬{P}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬{C1}▬▬{J22}Ā₣ŔΐŦ{C1}▬▬{P}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬{J}▬▬""")
+                                print(f"{Z}Get {P}- {L}List {P}[{P2}{a}{P}]", end="", flush=True)
+                                with open("list.txt", "a", encoding="utf-8") as f:
+                                    f.write(username + "\n")
+                if not data.get("has_more"):
+                    break
+                token = data.get("next_page_token")
+                if not token:
+                    break
+            except Exception:
+                break
+            await asyncio.sleep(1)  # وقت انتظار 1 ثانية
+    
+    async def info(session, username):
+        global users
+        headers = {
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Android 10; Pixel 3 Build/QKQ1.200308.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/125.0.6394.70 Mobile Safari/537.36 trill_350402 JsSdk/1.0 NetType/MOBILE Channel/googleplay AppName/trill app_version/35.3.1 ByteLocale/en ByteFullLocale/en Region/IN AppId/1180 Spark/1.5.9.1 AppVersion/35.3.1 BytedanceWebview/d8a21c6"
+        }
+        try:
+            async with session.get(f'https://www.tiktok.com/@{username}', headers=headers, timeout=aiohttp.ClientTimeout(total=30)) as resp:
+                tikinfo = await resp.text()
+            info = str(tikinfo.split('webapp.user-detail"')[1]).split('"RecommendUserList"')[0]
+            try:
+                user_id = str(info.split('id":"')[1]).split('",')[0]
+                following = str(info.split('followingCount":')[1]).split(',"')[0]
+                country = str(info.split('region":"')[1]).split('",')[0]
+                async with lock:
+                    if country in ['MX', 'NG', 'VE', 'MM', 'UG', 'ID', 'GH'] and username not in users and int(following) >= 5000:
+                        users.add(username)
+                        await user_queue.put(user_id)
+            except:
+                pass
+        except:
+            pass
+        await asyncio.sleep(1)  # وقت انتظار 1 ثانية
+    
+    def V12():
+        kew = random.choice(['abcdefghijklmnopqrstuvwxyz', 'abcdefghijklmnopqrstuvwxyzñáéíóúü', 'abcdefghijklmnopqrstuvwxyzṣọẹ̀áéíóú', 'abcdefghijklmnopqrstuvwxyzñáéíóúü', 'ကခဂဃငစဆဇဈဉညတထဒဓနပဖဗဘမယရလဝသဟဠအ', 'abcdefghijklmnopqrstuvwxyzɛɔŋ'])
+        k = ''.join((random.choice(kew) for i in range(random.randrange(2, 9))))
+        return k
+    
+    async def search(session):
+        while True:
+            try:
+                username = V12()
+                url = "https://search16-normal-c-alisg.tiktokv.com/aweme/v1/search/user/sug/?iid=" + str(
+                    random.randint(1, 10 ** 19)) + "&device_id=" + str(random.randint(1, 10 ** 19)) + "&ac=wifi&channel=googleplay&aid=1233&app_name=musical_ly&version_code=300102&version_name=30.1.2&device_platform=android&os=android&ab_version=30.1.2&ssmix=a&device_type=RMX3511&device_brand=realme&language=ar&os_api=33&os_version=13&openudid=" + str(
+                    binascii.hexlify(os.urandom(8)).decode()) + "&manifest_version_code=2023001020&resolution=1080*2236&dpi=360&update_version_code=2023001020&_rticket=" + str(
+                    round(random.uniform(1.2, 1.6) * 100000000) * -1) + "4632" + "&current_region=IQ&app_type=normal&sys_region=IQ&mcc_mnc=41805&timezone_name=Asia%2FBaghdad&carrier_region_v2=418&residence=IQ&app_language=ar&carrier_region=IQ&ac2=wifi&uoo=0&op_region=IQ&timezone_offset=10800&build_number=30.1.2&host_abi=arm64-v8a&locale=ar&region=IQ&content_language=gu%2C&ts=" + str(
+                    round(random.uniform(1.2, 1.6) * 100000000) * -1) + "&cdid=" + str(uuid.uuid4()) + ""
+                payload = {
+                    'keyword': username,
+                    'count': "100",
+                    'source': "tt_ffp_add_friends",
+                    'mention_type': "0"}
+                headers = {'Host': 'search16-normal-c-alisg.tiktokv.com',
+                           'User-Agent': "com.zhiliaoapp.musically/2023105030 (Linux; U; Android 13; ar_IQ; RMX3511; Build/TP1A.220624.014; Cronet/TTNetVersion:2fdb62f9 2023-09-06 QuicVersion:bb24d47c 2023-07-19)"}
+                headers.update(sign(url.split('?')[1], payload=urllib.parse.urlencode(payload)))
+                try:
+                    async with session.post(url, data=payload, headers=headers, timeout=aiohttp.ClientTimeout(total=30)) as response:
+                        data = await response.json()
+                except:
+                    continue
+                
+                ids = [
+                    item["extra_info"].get("sug_uniq_id")
+                    for item in data.get("sug_list", [])
+                    if "extra_info" in item
+                       and "sug_uniq_id" in item["extra_info"]
+                       and re.fullmatch(r"[A-Za-z0-9_]+", item["extra_info"]["sug_uniq_id"])
+                ]
+                for user in ids:
+                    await info(session, user)
+            except Exception as e:
+                pass
+            await asyncio.sleep(1)  # وقت انتظار 1 ثانية
+    
+    async def worker(session):
+        while True:
+            try:
+                user_id = await user_queue.get()
+                await get_following(session, user_id)
+                user_queue.task_done()
+            except Exception:
+                pass
+            await asyncio.sleep(1)
+    
+    async def main():
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30)) as session:
+            workers = [asyncio.create_task(worker(session)) for _ in range(5)]
+            searches = [asyncio.create_task(search(session)) for _ in range(5)]
+            
+            await asyncio.gather(*workers, *searches)
+    
+    if __name__ == '__main__':
+        asyncio.run(main())
