@@ -88,7 +88,7 @@ class TikTokScraper:
        sys.stdout.write('\033[H\033[J')
        sys.stdout.write(n+'\n')
        sys.stdout.flush()
-       with open('User_Tik.txt','a')as v:v.write(user+'\n')
+       with open('list.txt','a')as v:v.write(user+'\n')
    except:continue
  def run(self):
   os.system('clear');self.banner();print(f"""	{X}[{F}1{X}] {P1}Random\n	{X}[{F}2{X}] {P1}Following""");lis=input(f'	{X}[{F}×{X}] {R}Choose : ')
